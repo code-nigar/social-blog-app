@@ -9,6 +9,60 @@
 //     showdiv.style.visibility = "hidden";
 //   }
 // }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
+import { getAuth, signOut,  onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAj7LvL92dgZqS40oG2RlO05hsg81cz7sQ",
+  authDomain: "post-app-23f46.firebaseapp.com",
+  projectId: "post-app-23f46",
+  storageBucket: "post-app-23f46.appspot.com",
+  messagingSenderId: "351026662190",
+  appId: "1:351026662190:web:c633f76e512eb2a456c8bf"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in, see docs for a list of available properties
+    // https://firebase.google.com/docs/reference/js/firebase.User
+    
+    console.log(user);
+    // const db = getDatabase();
+    //   onValue(ref(db, `users/${user.uid}`), (data)=>{
+    //     console.log("data =>",data.val());
+    //     un.innerHTML = data.val().username;
+    //   })
+    // ...
+  } else {
+    // User is signed out
+    console.log("user not signed in");
+    // ...
+  }
+});
+
+//logout
+var LogoutBtn = document.getElementById("logout-btn");
+
+LogoutBtn.addEventListener('click', function(){
+    const auth = getAuth();
+  signOut(auth).then(() => {
+    console.log("Sign-out successful");// Sign-out successful.
+  }).catch((error) => {
+    console.log(error);// An error happened.
+  });
+    localStorage.setItem("current-user-id", "");
+    goBack();
+})
+
+function goBack(){
+    let currentPath = window.location.pathname;
+    let newpath = currentPath.slice(0,currentPath.indexOf("main")) + "index.html"
+    window.location.pathname = newpath;
+  }
+
+
 var quill = new Quill('#editor', {
     theme: 'snow'
 });

@@ -87,11 +87,11 @@ LoginBtn.addEventListener('click', function(){
       const user = userCredential.user;
       console.log("User => ",user);
 
-      //read data from realtime database
-      const db = getDatabase();
-      onValue(ref(db, `users/${user.uid}`), (data)=>{
-        console.log("data =>",data.val());
-      })
+      // //read data from realtime database
+      // const db = getDatabase();
+      // onValue(ref(db, `users/${user.uid}`), (data)=>{
+      //   console.log("data =>",data.val());
+      // })
       localStorage.setItem("current-user-id", user.uid);
       goNewPath();
     })
