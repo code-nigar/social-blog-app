@@ -93,6 +93,17 @@ LoginBtn.addEventListener('click', function(){
       const errorCode = error.code;
       const errorMessage = error.message;
       console.log("ERROR => ",errorMessage);
+      //error sweet alert
+      Swal.fire({
+        title: `${errorMessage}`,
+        icon: 'error',
+        showClass: {
+          popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+          popup: 'animate__animated animate__fadeOutUp'
+        }
+      });
       }
     );
 })

@@ -1,17 +1,6 @@
-// function openPostForm(){
-//     document.getElementById("initial-view").className="mk-invisible";
-//     showdiv =  document.getElementById("secondary-view");
-//    if (showdiv.style.visibility === "hidden") {
-//     showdiv.style.visibility = "visible";
-//     showdiv.style.position = "absolute";
-//     showdiv.style.top = "20px";
-//   } else {
-//     showdiv.style.visibility = "hidden";
-//   }
-// }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
 import { getAuth, signOut,  onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, setDoc, doc, updateDoc, arrayUnion, arrayRemove} from "https://www.gstatic.com/firebasejs/9.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAj7LvL92dgZqS40oG2RlO05hsg81cz7sQ",
@@ -21,8 +10,21 @@ const firebaseConfig = {
   messagingSenderId: "351026662190",
   appId: "1:351026662190:web:c633f76e512eb2a456c8bf"
 };
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const auth = getAuth();
+
+var theUser;
+var theBlogs = [];
+var bgColor= "linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%)";
+
+function theBlogObj(blogger,blogPosted,blogContent){
+  blogger = this.blogger;
+  blogPosted = this.blogPosted;
+  blogContent = this.blogContent;
+};
+
 let currentUid = localStorage.getItem("current-user-id")
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -30,6 +32,7 @@ onAuthStateChanged(auth, (user) => {
     // https://firebase.google.com/docs/reference/js/firebase.User
     
     console.log(user);
+    theUser = user;
     // const db = getDatabase();
     //   onValue(ref(db, `users/${user.uid}`), (data)=>{
     //     console.log("data =>",data.val());
@@ -55,7 +58,42 @@ LogoutBtn.addEventListener('click', function(){
   });
     localStorage.setItem("current-user-id", "");
     goBack();
-})
+});
+
+const querySnapshot = await getDocs(collection(db, "users"));
+querySnapshot.forEach((doc) => {
+  if(doc.data().blogs){
+  console.log(`${doc.id} => ${doc.data().blogs.length}`);
+    //console.log("okk")
+    let blogz = doc.data().blogs;
+    blogz.forEach(element => {
+      theBlogs.push(element);
+    });
+  }
+});
+console.log(theBlogs);
+//retrieve and display pre existing blogs
+for(let i=0; i<theBlogs.length; i++){
+  document.getElementById("post-container").innerHTML +=
+  `
+  <div
+  class="the-post"
+  style="
+  background: linear-gradient(90deg, hsla(212, 35%, 58%, 1) 0%, hsla(218, 32%, 80%, 1) 100%);
+  "
+>
+  <div class="the-post-header">
+    <div class="the-post-author-profile">${theBlogs[i].bloggername[0]}</div>
+    <div class="the-post-author">${theBlogs[i].bloggername}</div>
+  </div>
+  <div class="the-post-body">
+    <div class="the-post-para">
+      ${theBlogs[i].bloghtml}
+    </div>
+  </div>
+</div>
+  `;
+}
 
 function goBack(){
     let currentPath = window.location.pathname;
@@ -67,36 +105,38 @@ function goBack(){
 var quill = new Quill('#editor', {
     theme: 'snow'
 });
-  
-var bgColor;
 
 function assign_Bg_1(){
-  bgColor = "linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%)"
+  bgColor = "linear-gradient(90deg, hsla(228, 17%, 53%, 1) 0%, hsla(229, 28%, 88%, 1) 100%)"
   document.getElementById("block2").style.visibility="hidden";
   document.getElementById("block3").style.visibility="hidden";
   document.getElementById("block4").style.visibility="hidden";
 }
 function assign_Bg_2(){
-  bgColor = "linear-gradient(45deg, #08AEEA 0%, #2AF598 100%)"
+  bgColor = "linear-gradient(90deg, hsla(176, 61%, 87%, 1) 0%, hsla(150, 54%, 86%, 1) 50%, hsla(301, 68%, 84%, 1) 100%)"
   document.getElementById("block1").style.visibility="hidden";
   document.getElementById("block3").style.visibility="hidden";
   document.getElementById("block4").style.visibility="hidden";
 }
 function assign_Bg_3(){
-  bgColor = "linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%)"
+  bgColor = "linear-gradient(90deg, hsla(186, 33%, 94%, 1) 0%, hsla(216, 41%, 79%, 1) 100%)"
   document.getElementById("block1").style.visibility="hidden";
   document.getElementById("block2").style.visibility="hidden";
   document.getElementById("block4").style.visibility="hidden";
 }
 function assign_Bg_4(){
-  bgColor = "linear-gradient(45deg, #00DBDE 0%, #FC00FF 100%)"
+  bgColor = "   background: linear-gradient(90deg, hsla(263, 42%, 65%, 1) 0%, hsla(319, 77%, 86%, 1) 100%)"
   document.getElementById("block2").style.visibility="hidden";
   document.getElementById("block3").style.visibility="hidden";
   document.getElementById("block1").style.visibility="hidden";
 }
 
+document.getElementById("block1").addEventListener('click',assign_Bg_1);
+document.getElementById("block2").addEventListener('click',assign_Bg_2);
+document.getElementById("block3").addEventListener('click',assign_Bg_3);
+document.getElementById("block4").addEventListener('click',assign_Bg_4);
+
 function postFunc(){
-    event.preventDefault()
   // var para = document.getElementById("editor").value;
   // document.getElementById("textfield").value = "";
   var text = quill.root.innerHTML;
@@ -139,12 +179,20 @@ function postFunc(){
   document.getElementById("post-container").appendChild(newpost);
 
   //add blog to database
-  async () => await setDoc(doc(db, "users", "LA"), {
-    name: "Los Angeles",
-    state: "CA",
-    country: "USA"
-  });
-
+  try {
+    updateDoc(doc(db,"users", `${currentUid}`),{
+      blogs : arrayUnion(
+        {
+         bloghtml : text,
+         blogtime : new Date(),
+         bloggername : name
+        }
+      )
+    });
+  } catch (error) {
+    console.log("error in setting blog to firestore", error);
+  }
 quill.root.innerHTML = "";
   }
 }
+document.getElementById("post-btn").addEventListener('click',postFunc);
