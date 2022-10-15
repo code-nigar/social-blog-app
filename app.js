@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc ,setDoc, getDocs } from "https://www.gstatic.com/firebasejs/9.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyAj7LvL92dgZqS40oG2RlO05hsg81cz7sQ",
@@ -15,7 +15,7 @@ appId: "1:351026662190:web:c633f76e512eb2a456c8bf"
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-//Authentication and registration
+//Authentication
 const auth = getAuth();
 
 var registrationBtn = document.getElementById("register-btn");
@@ -24,36 +24,38 @@ registrationBtn.addEventListener('click', function(){
   let userName = document.getElementById("name").value;
   let userEmail = document.getElementById("email").value;
   let pass = document.getElementById("password").value;
-
+  //signup with firebase
   createUserWithEmailAndPassword(auth, userEmail, pass)
   .then((userCredential) => {
-    // Signed in 
+    // Signup process passed
     const user = userCredential.user;
     console.log("User => ",user);
-
-    try {
-      const docRef = addDoc(collection(db, "users"), {
-        name: userName,
-        email: userEmail,
-        password: pass
-      });
-      console.log("Document written with ID: ", docRef.id);
-    } catch (e) {
+      //set userdata to firestore db
+      try {
+          setDoc(doc(db, "users", `${user.uid}`), {
+          name: userName,
+          email: userEmail,
+          password: pass
+          });
+        //succeess sweet alert
+        Swal.fire({
+          title: 'Registration Successful',
+          icon: 'success',
+          showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+          }
+        });
+        //switch signup to login window
+        var switchWindow = document.getElementById("input");
+        switchWindow.checked = true;
+      } catch (e) {
       console.error("Error adding document: ", e);
-    }
-    //succeess sweet alert
-    Swal.fire({
-      title: 'Registration Successful',
-      icon: 'success',
-      showClass: {
-        popup: 'animate__animated animate__fadeInDown'
-      },
-      hideClass: {
-        popup: 'animate__animated animate__fadeOutUp'
       }
-    });
-  })
-  .catch((error) => {
+  }).catch((error) => {
+    //catch error for signup failure
     const errorCode = error.code;
     const errorMessage = error.message;
     console.log("ERROR => ",errorMessage);
@@ -67,8 +69,7 @@ registrationBtn.addEventListener('click', function(){
       hideClass: {
         popup: 'animate__animated animate__fadeOutUp'
       }
-    })
-    // ..
+    });
   });
 });
 
@@ -78,21 +79,14 @@ var LoginBtn = document.getElementById("login-btn");
 LoginBtn.addEventListener('click', function(){
   let loginMail = document.getElementById("l-email").value;
   let loginPass = document.getElementById("l-password").value;
-
-
-  //const auth = getAuth();
+  //Sign in with firebase
   signInWithEmailAndPassword(auth, loginMail, loginPass)
     .then((userCredential) => {
       // Signed in 
       const user = userCredential.user;
       console.log("User => ",user);
-
-      // //read data from realtime database
-      // const db = getDatabase();
-      // onValue(ref(db, `users/${user.uid}`), (data)=>{
-      //   console.log("data =>",data.val());
-      // })
       localStorage.setItem("current-user-id", user.uid);
+      //switch to new page
       goNewPath();
     })
     .catch((error) => {
@@ -102,8 +96,6 @@ LoginBtn.addEventListener('click', function(){
       }
     );
 })
-
-
 
 function goNewPath(){
   let currentPath = window.location.pathname;

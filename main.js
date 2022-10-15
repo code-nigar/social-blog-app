@@ -23,6 +23,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
+let currentUid = localStorage.getItem("current-user-id")
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // User is signed in, see docs for a list of available properties
@@ -136,6 +137,13 @@ function postFunc(){
   newpost.appendChild(newpost_header);
   newpost.appendChild(newpost_body);
   document.getElementById("post-container").appendChild(newpost);
+
+  //add blog to database
+  async () => await setDoc(doc(db, "users", "LA"), {
+    name: "Los Angeles",
+    state: "CA",
+    country: "USA"
+  });
 
 quill.root.innerHTML = "";
   }
